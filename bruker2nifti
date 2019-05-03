@@ -1,0 +1,75 @@
+#! /usr/bin/env python
+
+import io_functions.file_finder as file_finder
+import io_functions.bruker_converter as bruker_converter
+import argparse
+
+### DEFINE INPUTS ##############################################################
+parser = argparse.ArgumentParser(description="Convert Bruker 2dseq files to NIFTI files")
+parser.add_argument("-r", "--flip_rpe", action="store_true", help="Flip images with 'RPE' in the method name. Default=False", default=False)
+parser.add_argument("search_directory", type=str, help="Directory containing Bruker raw Data")
+parser.add_argument("output_directory", type=str, help="Directory to save Converted Bruker Data")
+
+args = parser.parse_args()
+################################################################################
+
+if (args.output_directory[-1] != '/'):
+    args.output_directory += '/'
+
+### SEARCH FOR IMAGES AND HEADERS ##############################################
+print("Searching for raw Bruker data in " + args.search_directory)
+
+filepaths_2dseq = file_finder.scan_for_files('2dseq', args.search_directory, [])
+filepaths_method = file_finder.scan_for_files('method', args.search_directory, [])
+filepaths_visu_pars = file_finder.scan_for_files('visu_pars', args.search_directory, [])
+
+print("Found " + str(len(filepaths_2dseq)) + " Image Files to Convert")
+################################################################################
+
+
+
+### ENSURE FILES MATCH #########################################################
+files_2dseq = []
+files_method = []
+files_visu_pars = []
+
+for i in range(len(filepaths_2dseq)):
+    basepath = filepaths_2dseq[i][:-5]
+
+    method_match = False
+    visu_pars_match = False
+
+    for method in filepaths_method:
+        if (method[:-6] == basepath[:-8]):
+            method_match = True
+            break
+
+    for visu_pars in filepaths_visu_pars:
+        if (visu_pars[:-9] == basepath):
+            visu_pars_match = True
+            break
+
+    if (method_match and visu_pars_match):
+        files_2dseq.append(filepaths_2dseq[i])
+        files_method.append(method)
+        files_visu_pars.append(visu_pars)
+################################################################################
+
+
+
+### CREATE NIFTIs ##############################################################
+for i in range(len(files_2dseq)):
+    try:
+        bruker_converter.create_nifti(files_2dseq[i], files_visu_pars[i],
+                                      files_method[i], args.flip_rpe,
+                                      args.output_directory)
+
+        print("Converted %d/%d" % (i+1, len(files_2dseq)))
+
+    except Exception as e:
+        print("Could not Convert " + files_2dseq[i])
+        print(e)
+
+
+
+################################################################################
