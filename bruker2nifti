@@ -3,6 +3,7 @@
 import io_functions.file_finder as file_finder
 import io_functions.bruker_converter as bruker_converter
 import argparse
+import os
 
 ### DEFINE INPUTS ##############################################################
 parser = argparse.ArgumentParser(description="Convert Bruker 2dseq files to NIFTI files")
@@ -13,15 +14,15 @@ parser.add_argument("output_directory", type=str, help="Directory to save Conver
 args = parser.parse_args()
 ################################################################################
 
-if (args.output_directory[-1] != '/'):
-    args.output_directory += '/'
+#if (args.output_directory[-1] != '/'):
+    #args.output_directory += '/'
 
 ### SEARCH FOR IMAGES AND HEADERS ##############################################
 print("Searching for raw Bruker data in " + args.search_directory)
 
-filepaths_2dseq = file_finder.scan_for_files('2dseq', args.search_directory, [])
-filepaths_method = file_finder.scan_for_files('method', args.search_directory, [])
-filepaths_visu_pars = file_finder.scan_for_files('visu_pars', args.search_directory, [])
+filepaths_2dseq = file_finder.scan_for_files('2dseq', os.path.abspath(args.search_directory), [])
+filepaths_method = file_finder.scan_for_files('method', os.path.abspath(args.search_directory), [])
+filepaths_visu_pars = file_finder.scan_for_files('visu_pars', os.path.abspath(args.search_directory), [])
 
 print("Found " + str(len(filepaths_2dseq)) + " Image Files to Convert")
 ################################################################################
@@ -62,7 +63,7 @@ for i in range(len(files_2dseq)):
     try:
         bruker_converter.create_nifti(files_2dseq[i], files_visu_pars[i],
                                       files_method[i], args.flip_rpe,
-                                      args.output_directory)
+                                      os.path.abspath(args.output_directory))
 
         print("Converted %d/%d" % (i+1, len(files_2dseq)))
 
