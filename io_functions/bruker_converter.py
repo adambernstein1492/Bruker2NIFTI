@@ -69,10 +69,10 @@ def create_nifti(path_2dseq, path_visu_pars, path_method, flip_rpe, save_path):
 	# Create the NIFTI
 	nii = nib.Nifti1Image(img, affine)
 	nii.qoffset_x = offset[0]
-	nii.qoffset_y = offset[2]
-	nii.qoffset_z = offset[1]
+	nii.qoffset_y = offset[1]
+	nii.qoffset_z = offset[2]
 
-	nii.affine[0:3,3] = [offset[0], offset[2], offset[1]]
+	nii.affine[0:3,3] = [offset[0], offset[1], offset[2]]
 
 	# Save the NIFTI
 	study_number = path_2dseq.split('/')[-4]
@@ -236,27 +236,6 @@ def get_affine(visu_pars):
 	affine[0:3,3] = offset
 
 	affine = np.linalg.inv(affine)
-
-	affine[0:3,0:3] = affine[0:3,0:3].dot(np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]]))
-
-	for i in range(3):
-		max = 0
-		index = 0
-		for j in range(3):
-			if np.abs(affine[j,i]) > max:
-				max = np.abs(affine[j,i])
-				index = j
-
-		if i == 0:
-			if affine[index,i] > 0:
-				affine[:,i] *= -1
-		if i == 1:
-			if affine[index,i] > 0:
-				affine[:,i] *= -1
-		if i == 2:
-			if affine[index,i] < 0:
-				affine[:,i] *= -1
-
 
 	affine[0:3,0:3] = affine[0:3,0:3].dot(np.diag(resolution))
 
